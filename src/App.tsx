@@ -173,11 +173,9 @@ const handleSearch = async(name?: string, category?: string[], availability?: st
         <Typography variant="h4" gutterBottom>Inventory Management</Typography>
 
 
-        {/* Form Section */}
         <Box component="form" onSubmit={onSubmit} noValidate sx={{ marginBottom: 3 }}>
           <TextField
                     label="Name"
-                   /*  value={searchName} */
                     variant="outlined"
                     fullWidth
                     margin="normal"
@@ -229,7 +227,6 @@ const handleSearch = async(name?: string, category?: string[], availability?: st
             }}>Search</Button>
         </Box>
 
-        {/* New Product Button */}
         <Button
             variant="outlined"
             color="secondary"
@@ -245,7 +242,6 @@ const handleSearch = async(name?: string, category?: string[], availability?: st
 
 
 
-       {/* Summary Table */}
        <Table sx={{marginTop:4, boxShadow:3}}>
                 <TableHead>
                     <TableRow>
@@ -260,8 +256,8 @@ const handleSearch = async(name?: string, category?: string[], availability?: st
                      <TableRow key={report.category}>
                      <TableCell>{report.category}</TableCell>
                      <TableCell>{report.totalProductsInStock}</TableCell>
-                     <TableCell>{report.totalValueInStock.toFixed(2)}</TableCell>
-                     <TableCell>{report.averagePriceInStock.toFixed(2)}</TableCell>
+                     <TableCell>{"$"+report.totalValueInStock.toFixed(2)}</TableCell>
+                     <TableCell>{"$"+report.averagePriceInStock.toFixed(2)}</TableCell>
                  </TableRow>
                   ))}
                 </TableBody>

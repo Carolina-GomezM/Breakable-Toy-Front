@@ -2,19 +2,19 @@ import React, { useState, useEffect, ChangeEvent } from "react";
 import { Box, Button, Modal, TextField, Typography, MenuItem } from "@mui/material";
 import {Product} from './Product'
 import { DatePicker } from '@mui/x-date-pickers';
-import dayjs, { Dayjs } from 'dayjs'; // Para manejar las fechas
+import dayjs, { Dayjs } from 'dayjs'; 
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {useForm, Controller} from 'react-hook-form'
 
 
 
-// Props que recibirá el modal
+
 interface ProductModalProps {
-  open: boolean; // Controla si el modal está abierto o cerrado
-  onClose: () => void; // Función para cerrar el modal
-  productEdit?: Product; // Producto para editar (opcional)
-  onSave: (product: Product) => void; // Función para guardar (agregar o actualizar)
+  open: boolean;
+  onClose: () => void;
+  productEdit?: Product; 
+  onSave: (product: Product) => void;
   categories: string[];
 }
 
@@ -38,15 +38,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
     setValue('newCat', '');
     
     if (productEdit) {
-        // Establecer los valores en React Hook Form
         setValue('category', productEdit.category);
         setValue('name', productEdit.name);
         setValue('price', (productEdit.price).toString());
         setValue('stock', (productEdit.stock).toString());
-        // Actualizar el estado local
         setProduct(productEdit);
     } else {
-        // Resetear todos los valores
         setValue('category', '');
         setValue('name', '');
         setValue('price', '');
@@ -57,7 +54,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
 
   
 
-  // Manejamos cambios en los campos del formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProduct((prev) => ({
@@ -76,7 +72,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
 
   }
 
-  // Guardar el producto
   const onSubmit = (data: any) => {
     const { category, name, price,  stock } = product;
 
@@ -87,9 +82,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
     }
     
     
-    onSave(product); // Llamamos a la función para guardar el producto
+    onSave(product); 
     setIsAddingCategory(false)
-    onClose(); // Cerramos el modal
+    onClose();
   };
 
 
@@ -141,7 +136,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
             setIsAddingCategory(true);
             } else {
             setIsAddingCategory(false);
-            setProduct((prev) => ({ ...prev, category: value })); // Actualizamos la categoría seleccionada
+            setProduct((prev) => ({ ...prev, category: value })); 
             }
         }}
         error={Boolean(errors.category)}
@@ -167,7 +162,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
             })}
             onChange={(e) => {
                 const value = e.target.value;
-                setValue('newCat', value); // Actualiza el valor en React Hook Form
+                setValue('newCat', value);
                 setNewCategory(value);
                 setProduct(prev => ({...prev, category: value}));
             }}
@@ -230,7 +225,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
           {...register("stock",{
             required: "This field is required",
             validate: {
-                // Validación personalizada para enteros
                 isInteger: (value) => {
                  if(!Number.isInteger(Number(value))){
                     return "The value must be an Integer"

@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import ProductTable from '../tableProduct'
 import dayjs from 'dayjs'
 
-// Mock data
 const mockProducts = [
   {
     id: 1,
@@ -32,7 +31,6 @@ const mockProducts = [
   }
 ]
 
-// Mock handlers
 const mockOnEdit = vi.fn()
 const mockOnDelete = vi.fn()
 const mockHandleChk = vi.fn()
@@ -53,21 +51,15 @@ describe('ProductTable', () => {
         handleAllChecks={mockHandleAllChecks}
       />
     )
-
-    // Get all cells in the first column (excluding header)
     const getAllColumnCells = (columnIndex: number) => {
       const rows = screen.getAllByRole('row').slice(1) // Skip header row
       return rows.map(row => within(row).getAllByRole('cell')[columnIndex])
     }
 
-    // Click name header to sort
     const nameHeader = screen.getByText('Name')
     await userEvent.click(nameHeader)
-
-    // Get all name cells (index 2 because checkbox and category come first)
     const nameCells = getAllColumnCells(2)
     
-    // Verify sort order (ascending)
     expect(nameCells[0]).toHaveTextContent('Product C')
     expect(nameCells[1]).toHaveTextContent('Product B')
     expect(nameCells[2]).toHaveTextContent('Product A')
@@ -86,11 +78,9 @@ describe('ProductTable', () => {
 
     const rows = screen.getAllByRole('row')
     
-    // Check Product B with low stock (3)
     const lowStockCell = within(rows[2]).getByText('3')
     expect(lowStockCell).toHaveStyle({ backgroundColor: 'darkcoral' })
 
-    // Check Product C with zero stock
     const zeroStockCell = within(rows[3]).getByText('0')
     expect(zeroStockCell).toHaveStyle({ textDecorationLine: 'line-through' })
   })
@@ -143,11 +133,9 @@ describe('ProductTable', () => {
       />
     )
 
-    // Open delete dialog
     const deleteButtons = screen.getAllByText('Delete')
     await userEvent.click(deleteButtons[0])
 
-    // Confirm deletion
     const confirmButton = screen.getByText('Yes')
     await userEvent.click(confirmButton)
 

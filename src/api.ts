@@ -1,4 +1,4 @@
-// Importar los tipos necesarios
+
 import {Product, Report} from './Product'
 
 export const obtainAllProducts = async (): Promise<Product[]> => {

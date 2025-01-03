@@ -6,7 +6,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
 
-// Mock props
 const mockOnClose = vi.fn()
 const mockOnSave = vi.fn()
 const mockCategories = ['Electronics', 'Food', 'Clothing']
@@ -19,7 +18,7 @@ const mockProduct = {
   expDate: '2024-12-31'
 }
 
-// Wrapper component for LocalizationProvider
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <LocalizationProvider dateAdapter={AdapterDayjs}>
     {children}
@@ -139,14 +138,12 @@ describe('ProductModal', () => {
       { wrapper }
     )
 
-    // Fill in form fields
     await userEvent.click(screen.getByLabelText('Category'))
     await userEvent.click(screen.getByText('Electronics'))
     await userEvent.type(screen.getByLabelText('Name'), 'New Product')
     await userEvent.type(screen.getByLabelText('Unit price'), '99.99')
     await userEvent.type(screen.getByLabelText('Stock'), '10')
 
-    // Submit form
     await userEvent.click(screen.getByText('Save'))
 
     expect(mockOnSave).toHaveBeenCalled()

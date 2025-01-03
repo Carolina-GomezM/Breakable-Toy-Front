@@ -193,9 +193,9 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
       if (diffInDays <= 7) {
         rowStyle = 'lightcoral'; 
       } else if (diffInDays <= 14) {
-        rowStyle = 'lightgoldenrodyellow'; // Expira entre 1 y 2 semanas
+        rowStyle = 'lightgoldenrodyellow'; 
       } else {
-        rowStyle = 'lightgreen'; // Expira en más de 2 semanas
+        rowStyle = 'lightgreen';
       }
     }
 
@@ -213,6 +213,8 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
             key={product.id}
             sx={{
               backgroundColor:rowStyle,
+              textDecorationLine: product.stock == 0 ? 'line-through' : 'none'
+
             }}
           >
             <TableCell padding="checkbox">
@@ -223,12 +225,11 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
             </TableCell>
             <TableCell>{product.category}</TableCell>
             <TableCell>{product.name}</TableCell>
-            <TableCell>{product.price.toFixed(2)}</TableCell>
+            <TableCell>{"$"+product.price.toFixed(2)}</TableCell>
             <TableCell>{product.expDate || "N/A"}</TableCell>
             <TableCell sx={{
               backgroundColor: cellStyle,
-              textDecorationLine: product.stock == 0 ? 'line-through' : 'none'
-            }}>{product.stock}</TableCell>
+           }}>{product.stock}</TableCell>
             <TableCell>
               <Button color="primary" variant="contained" size="small" sx={{marginRight:'20px'}} onClick={() => onEdit(product)}>
                 Edit

@@ -9,7 +9,12 @@ import {
   TablePagination,
   Checkbox,
   Button,
-  TableSortLabel, Dialog, DialogActions, DialogContent, DialogTitle, DialogContentText 
+  TableSortLabel,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  DialogContentText,
 } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import { Product } from './Product';
@@ -25,7 +30,7 @@ interface TableProps {
 
 const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, handleChk, handleAllChecks }) => {
   const [open, setOpen] = useState(false);
-  const [idDel, setIdDel] = useState<number | null>(null);  
+  const [idDel, setIdDel] = useState<number | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [primarySort, setPrimarySort] = useState<keyof Product | null>("name");
@@ -36,37 +41,75 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const fetchSortedProducts = async () => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Parámetros de ordenamiento
+      if (primarySort) {
+        params.append('primarySort', primarySort);
+        params.append('primaryOrder', order);
+      }
+      
+      if (secondarySort?.column) {
+        params.append('secondarySort', secondarySort.column);
+        params.append('secondaryOrder', secondarySort.order);
+      }
+      
+      // Parámetros de paginación
+      params.append('page', page.toString());
+      params.append('size', rowsPerPage.toString());
+
+      const response = await fetch(`http://localhost:9090/products/sorted?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al obtener productos');
+      }
+
+      const { data, total } = await response.json();
+      
+      setProducts(data || []);
+      setTotal(total || 0);
+      
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setProducts([]);
+      setTotal(0);
+    }
+  };
 
   useEffect(() => {
-    setProducts(productsEdit);
+    fetchSortedProducts();
+  }, [primarySort, secondarySort, order, page, rowsPerPage]);
+
+  useEffect(() => {
+    // Actualizar productos cuando cambia productsEdit
+    fetchSortedProducts();
   }, [productsEdit]);
 
-  // FUNCTIONS FOR DELETE A PRODUCT
-
   const handleClose = () => {
-    setOpen(false)
+    setOpen(false);
     setIdDel(null);
-  }
+  };
 
   const handleOpen = (id: number) => {
     setIdDel(id);
     setOpen(true);
-  }
+  };
 
   const handleDelete = () => {
-    if (idDel !== null){
-      onDelete(idDel)
+    if (idDel !== null) {
+      onDelete(idDel);
+      fetchSortedProducts(); // Refrescar datos después de eliminar
     }
-
     handleClose();
-  }
+  };
 
-  // PRODUCT SELECTION MANAGEMENT
-  const handleSelectAllClick = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected = products.map((product) => product.id);
-    handleAllChecks(newSelected, event)
+    handleAllChecks(newSelected, event);
     if (event.target.checked) {
       setSelected(newSelected);
     } else {
@@ -74,9 +117,8 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
     }
   };
 
-  // HANDLING INDIVIDUAL CHECKBOX SLECTION/ UNCHECKING
   const handleCheckboxChange = (id: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    handleChk(id, event)
+    handleChk(id, event);
     setSelected((prevSelected) => {
       if (prevSelected.includes(id)) {
         return prevSelected.filter((selectedId) => selectedId !== id);
@@ -86,7 +128,6 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
     });
   };
 
-  // FUNCTION TO HANDLE THE ORDER OF COLUMNS
   const handleSort = (column: keyof Product) => {
     if (primarySort === column) {
       if (order === "desc") {
@@ -112,46 +153,35 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
     }
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const compare = (key: keyof Product, order: "asc" | "desc", a: Product, b: Product) => {
-      const dir = order === "asc" ? 1 : -1;
-      if (key === "name" || key === "category") {
-        return a[key].localeCompare(b[key]) * dir;
-      } else if (key === "price" || key === "stock") {
-        return (a[key] - b[key]) * dir;
-      } else if (key === "expDate") {
-        return (
-          new Date(a[key]).getTime() - new Date(b[key]).getTime()
-        ) * dir;
-      }
-      return 0;
-    };
+    const getRowStyle = (expDate: string | null, stock: number) => {
+  const expirationDate = expDate ? dayjs(expDate) : null;
+  let rowStyle = "inherit";
 
-    const primaryComparison = primarySort ? compare(primarySort, order, a, b) : 0;
-    if (primaryComparison !== 0 || !secondarySort.column) return primaryComparison;
-    return compare(secondarySort.column, secondarySort.order, a, b);
-  });
+  if (expirationDate) {
+  const diffInDays = expirationDate.diff(dayjs(), "day");
+  if (diffInDays <= 7) {
+  rowStyle = "lightcoral";
+  } else if (diffInDays <= 14) {
+  rowStyle = "lightgoldenrodyellow";
+  } else {
+  rowStyle = "lightgreen";
+  }
+  }
 
-  const paginatedProducts = sortedProducts.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const cellStyle = stock > 10 ? "inherit" : stock > 4 ? "#FBCEB1" : "#d34545";
 
-
+  return { rowStyle, cellStyle };
+  };
   return (
     <Paper>
-      <TableContainer component={Paper} sx={{marginTop:4, boxShadow:3}}>
+      <TableContainer component={Paper} sx={{ marginTop: 4, boxShadow: 3 }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                  indeterminate={
-                    selected.length > 0 && selected.length < products.length
-                  }
-                  checked={
-                    selected.length === products.length && products.length > 0
-                  }
+                  indeterminate={selected.length > 0 && selected.length < products.length}
+                  checked={selected.length === products.length && products.length > 0}
                   onChange={handleSelectAllClick}
                 />
               </TableCell>
@@ -164,9 +194,7 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
               ].map((column) => (
                 <TableCell key={column.id}>
                   <TableSortLabel
-                    active={
-                      primarySort === column.id || secondarySort.column === column.id
-                    }
+                    active={primarySort === column.id || secondarySort.column === column.id}
                     direction={
                       primarySort === column.id
                         ? order
@@ -183,93 +211,87 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
-  {paginatedProducts.map((product) => {
-   
-   const expirationDate = product.expDate ? dayjs(product.expDate) : null;
-    let rowStyle = 'inherit'; 
-    if (expirationDate) {
-      const diffInDays = expirationDate.diff(dayjs(), 'day');
-      if (diffInDays <= 7) {
-        rowStyle = 'lightcoral'; 
-      } else if (diffInDays <= 14) {
-        rowStyle = 'lightgoldenrodyellow'; 
-      } else {
-        rowStyle = 'lightgreen';
-      }
-    }
 
-    let cellStyle
-    if(product.stock > 10){
-      cellStyle = 'inherit'
-    } else if(product.stock > 4) {
-      cellStyle = '#FBCEB1'
-    } else if(product.stock < 5){
-      cellStyle = '#d34545'
-    } 
+<TableBody>
+  {productsEdit.map((product) => {
+    const { rowStyle, cellStyle } = getRowStyle(product.expDate, product.stock);
 
     return (
-          <TableRow
-            key={product.id}
-            sx={{
-              backgroundColor:rowStyle,
-              textDecorationLine: product.stock == 0 ? 'line-through' : 'none'
-
-            }}
+      <TableRow
+        key={product.id}
+        sx={{
+          backgroundColor: rowStyle,
+          textDecorationLine: product.stock === 0 ? "line-through" : "none",
+        }}
+      >
+        <TableCell padding="checkbox">
+          <Checkbox
+            checked={selected.includes(product.id)}
+            onChange={(e) => handleCheckboxChange(product.id, e)}
+          />
+        </TableCell>
+        <TableCell>{product.category}</TableCell>
+        <TableCell>{product.name}</TableCell>
+        <TableCell>{"$" + product.price.toFixed(2)}</TableCell>
+        <TableCell>{product.expDate || "N/A"}</TableCell>
+        <TableCell sx={{ backgroundColor: cellStyle }}>{product.stock}</TableCell>
+        <TableCell>
+          <Button
+            color="primary"
+            variant="contained"
+            size="small"
+            sx={{ marginRight: "20px" }}
+            onClick={() => onEdit(product)}
           >
-            <TableCell padding="checkbox">
-              <Checkbox
-                checked={selected.includes(product.id)}
-                onChange={(e) => handleCheckboxChange(product.id, e)}
-              />
-            </TableCell>
-            <TableCell>{product.category}</TableCell>
-            <TableCell>{product.name}</TableCell>
-            <TableCell>{"$"+product.price.toFixed(2)}</TableCell>
-            <TableCell>{product.expDate || "N/A"}</TableCell>
-            <TableCell sx={{
-              backgroundColor: cellStyle,
-           }}>{product.stock}</TableCell>
-            <TableCell>
-              <Button color="primary" variant="contained" size="small" sx={{marginRight:'20px'}} onClick={() => onEdit(product)}>
-                Edit
-              </Button>
-              <Button color="error" variant="contained" size="small"  onClick={() => handleOpen(product.id)}>
-                Delete
-              </Button>
-            </TableCell>
-          </TableRow>
-        );
-      })}
-    </TableBody>
+            Edit
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            size="small"
+            onClick={() => handleOpen(product.id)}
+          >
+            Delete
+          </Button>
+        </TableCell>
+      </TableRow>
+    );
+  })}
+</TableBody>
         </Table>
       </TableContainer>
       <TablePagination
         component="div"
-        count={products.length}
+        count={total}
         page={page}
-        onPageChange={(event, newPage) => setPage(newPage)}
-        rowsPerPage={10}
-        rowsPerPageOptions={[]}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[5, 10, 25]}
+        labelDisplayedRows={({ from, to, count }) => 
+          `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+        }
       />
-
       <Dialog
-              open={open}
-              keepMounted
-              onClose={handleClose}
-              aria-describedby="alert-dialog-slide-description"
-            >
-              <DialogTitle>{"Are you sure you want to delete this product?"}</DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-slide-description">
-                  Once the product is deleted it cannot be recovered.
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose}>No</Button>
-                <Button onClick={handleDelete}>Yes</Button>
-              </DialogActions>
-            </Dialog>
+        open={open}
+        keepMounted
+        onClose={handleClose}
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle>{"Are you sure you want to delete this product?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description">
+            Once the product is deleted it cannot be recovered.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>No</Button>
+          <Button onClick={handleDelete}>Yes</Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

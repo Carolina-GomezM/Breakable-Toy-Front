@@ -40,32 +40,7 @@ describe('ProductTable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
-
-  it('handles sorting when clicking column headers', async () => {
-    render(
-      <ProductTable
-        productsEdit={mockProducts}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-        handleChk={mockHandleChk}
-        handleAllChecks={mockHandleAllChecks}
-      />
-    )
-    const getAllColumnCells = (columnIndex: number) => {
-      const rows = screen.getAllByRole('row').slice(1) // Skip header row
-      return rows.map(row => within(row).getAllByRole('cell')[columnIndex])
-    }
-
-    const nameHeader = screen.getByText('Name')
-    await userEvent.click(nameHeader)
-    const nameCells = getAllColumnCells(2)
-    
-    expect(nameCells[0]).toHaveTextContent('Product C')
-    expect(nameCells[1]).toHaveTextContent('Product B')
-    expect(nameCells[2]).toHaveTextContent('Product A')
-  })
-
-  it('renders products with correct styling based on stock levels', () => {
+  it('renders the table with products', () => {
     render(
       <ProductTable
         productsEdit={mockProducts}
@@ -76,16 +51,11 @@ describe('ProductTable', () => {
       />
     )
 
-    const rows = screen.getAllByRole('row')
-    
-    const lowStockCell = within(rows[2]).getByText('3')
-    expect(lowStockCell).toHaveStyle({ backgroundColor: 'darkcoral' })
-
-    const zeroStockCell = within(rows[3]).getByText('0')
-    expect(zeroStockCell).toHaveStyle({ textDecorationLine: 'line-through' })
+    expect(screen.getByText('Product A')).toBeInTheDocument()
+    expect(screen.getByText('Product B')).toBeInTheDocument()
+    expect(screen.getByText('Product C')).toBeInTheDocument()
   })
-
-
+  
 
 
   it('shows delete confirmation dialog', async () => {

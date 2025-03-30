@@ -111,21 +111,13 @@ export const search = async (name?: string, categories?: string[], availability?
 try{
 
     let uri = 'http://localhost:9090/products?';
+    const params = new URLSearchParams();
 
-    if(name){
-        uri += "&name="+name
-    }
-    if(categories && categories.length > 0){
-        uri += "&category="
-        categories.forEach(category => {
-            uri += category+","
-        });
-        uri = uri.slice(0, -1);
+    if (name) params.append("name", name);
+    if (categories && categories.length > 0) params.append("category", categories.join(","));
+    if (availability) params.append("availability", availability);
 
-    }
-    if(availability){
-        uri += "&availability="+availability
-    }
+    uri += params.toString();
 
 
 
@@ -147,7 +139,7 @@ export const getAllCategories = async(): Promise<string[]> => {
             method:'GET'
         })
         const data = await response.json();
-        return data;
+        return data || [];
     } catch(error){
         console.error(error);
         throw error;
@@ -165,7 +157,12 @@ export const getReports = async(): Promise<Report[]> => {
         console.error(error);
         throw error;
 }
+
+
+
 }
+
+
 
 
 

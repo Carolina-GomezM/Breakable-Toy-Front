@@ -1,11 +1,11 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Modal, TextField, Typography, MenuItem } from "@mui/material";
 import {Product} from './Product'
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs'; 
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import {useForm, Controller} from 'react-hook-form'
+import {useForm} from 'react-hook-form'
 
 
 
@@ -19,7 +19,7 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit, onSave, categories }) => {
-    const {register, handleSubmit, getValues, setValue, watch, trigger, formState:{errors}} =  useForm({
+    const {register, handleSubmit,  setValue, formState:{errors}} =  useForm({
       defaultValues: {
           category: '',
           name: '',
@@ -28,7 +28,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
           newCat: ''
     }});
   const [product, setProduct]= useState<Product>(productEdit || {id:0, name: '', category:'', price: 0, expDate:'', stock: 0});
-  const  [category, setCategory] = useState<string>('')
   const [newCategory, setNewCategory] = useState<string>("");
   const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
 
@@ -67,21 +66,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, productEdit,
     setProduct(prev => ({...prev, expDate: date ? date.format('YYYY-MM-DD') : ''}));
   }
 
-  const handleNewCategoryChange = () => {
-    setProduct(prev => ({...prev, category: newCategory}));
-
-  }
 
   const onSubmit = (data: any) => {
-    const { category, name, price,  stock } = product;
-
-
-    if (!category || !name || price <= 0  || stock < 0) {
-      alert("Por favor completa los campos correctamente.");
-      return;
-    }
-    
-    
+    const product: Product = {
+      id: productEdit?.id || 0,
+      name: data.name,
+      category: isAddingCategory ? data.newCat : data.category,
+      price: parseFloat(data.price),
+      stock: parseInt(data.stock, 10),
+      expDate: data.expDate || "",
+    };
     onSave(product); 
     setIsAddingCategory(false)
     onClose();

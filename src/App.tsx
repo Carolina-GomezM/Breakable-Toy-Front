@@ -1,14 +1,10 @@
-import {useForm, Controller} from 'react-hook-form'
+import {useForm} from 'react-hook-form'
 import { TextField, Button, Select, MenuItem, InputLabel, FormControl, Table, TableHead, TableRow, TableCell, TableBody, Typography, Box, Checkbox} from '@mui/material';
 import TableProduct from './tableProduct'
 import MyModalProps from './modal'
 import { useEffect, useState } from 'react';
-import ProductTable from './tableProduct';
 import {Product, Report} from './Product'
 import { addProduct, obtainAllProducts, deleteProduct, updateProduct, setStock, setOutOfStock, search, getAllCategories, getReports } from "./api";
-type FormValues = {
-  category?: string[];
-}
 
 function App(){
 
@@ -93,14 +89,15 @@ const delProduct = async(id: number) => {
 const handleAllChecks = async(ids: number[], event: React.ChangeEvent<HTMLInputElement>) => {
   const isChecked = event.target.checked;
 
-  if (isChecked) {
-    ids.forEach(async id => {
-      await setOutOfStock(id)      
-    });
-  } else {
-    ids.forEach(async id => {
-      await setStock(id)   
-    });
+  try {
+    if (isChecked) {
+      await Promise.all(ids.map(id => setOutOfStock(id)));
+    } else {
+      await Promise.all(ids.map(id => setStock(id)));
+    }
+    await Promise.all([fetchProducts(), handleReports()]);
+  } catch (error) {
+    console.error(error);
   }
   fetchProducts()
   fetchProducts()

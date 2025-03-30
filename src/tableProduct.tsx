@@ -47,7 +47,6 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
     try {
       const params = new URLSearchParams();
       
-      // Parámetros de ordenamiento
       if (primarySort) {
         params.append('primarySort', primarySort);
         params.append('primaryOrder', order);
@@ -58,7 +57,6 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
         params.append('secondaryOrder', secondarySort.order);
       }
       
-      // Parámetros de paginación
       params.append('page', page.toString());
       params.append('size', rowsPerPage.toString());
 
@@ -85,7 +83,6 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
   }, [primarySort, secondarySort, order, page, rowsPerPage]);
 
   useEffect(() => {
-    // Actualizar productos cuando cambia productsEdit
     fetchSortedProducts();
   }, [productsEdit]);
 
@@ -102,7 +99,7 @@ const ProductTable: React.FC<TableProps> = ({ productsEdit, onEdit, onDelete, ha
   const handleDelete = () => {
     if (idDel !== null) {
       onDelete(idDel);
-      fetchSortedProducts(); // Refrescar datos después de eliminar
+      fetchSortedProducts(); 
     }
     handleClose();
   };
